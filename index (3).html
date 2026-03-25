@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>The Empire's Shadow | Project Something</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=Cinzel:wght@400;600;700&family=Crimson+Text:ital,wght@0,400;0,600;1,400;1,600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --gold: #C9A84C;
+      --gold-light: #E8C96A;
+      --gold-dim: #8B6914;
+      --dark: #080604;
+      --dark-2: #100D08;
+      --dark-3: #1A1309;
+      --dark-4: #221A0E;
+      --red: #7A1515;
+      --red-light: #C0392B;
+      --cream: #EDE3C8;
+      --cream-dim: #A89E85;
+    }
+
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--dark);
+      color: var(--cream);
+      font-family: 'Crimson Text', Georgia, serif;
+      font-size: 18px;
+      line-height: 1.8;
+      overflow-x: hidden;
+    }
+
+    /* Grain overlay */
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 9999;
+      opacity: 0.045;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+      background-repeat: repeat;
+      background-size: 200px 200px;
+    }
+
+    /* MUSIC BUTTON */
+    #music-btn {
+      position: fixed;
+      top: 22px; right: 24px; z-index: 9990;
+      background: rgba(8,6,4,0.9);
+      border: 1px solid var(--gold-dim);
+      color: var(--gold);
+      font-family: 'Cinzel', serif;
+      font-size: 10px; letter-spacing: 3px;
+      padding: 11px 20px;
+      cursor: pointer; text-transform: uppercase;
+      transition: background 0.3s, color 0.3s, border-color 0.3s;
+      backdrop-filter: blur(4px);
+    }
+    #music-btn:hover { background: var(--gold-dim); color: var(--dark); border-color: var(--gold); }
+    #music-btn.on { color: var(--red-light); border-color: var(--red); }
+
+    /* HERO */
+    #hero {
+      position: relative; height: 100vh; min-height: 640px;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      text-align: center; overflow: hidden;
+    }
+    #hero-bg {
+      position: absolute; inset: 0; z-index: 0;
+      background:
+        linear-gradient(to bottom, rgba(8,6,4,0.35) 0%, rgba(12,8,4,0.55) 40%, rgba(8,6,4,0.92) 100%),
+        radial-gradient(ellipse at 50% 30%, rgba(90,55,10,0.5) 0%, transparent 70%),
+        radial-gradient(ellipse at 20% 80%, rgba(60,15,15,0.3) 0%, transparent 50%),
+        radial-gradient(ellipse at 80% 70%, rgba(30,20,5,0.4) 0%, transparent 50%),
+        linear-gradient(180deg, #0E0A05 0%, #1A0F06 30%, #100A04 60%, #080604 100%);
+      transform: scale(1.06);
+      transform-origin: center center;
+    }
+    #hero-columns {
+      position: absolute; inset: 0; z-index: 1;
+      pointer-events: none; overflow: hidden;
+    }
+    .col-silhouette {
+      position: absolute; bottom: 0; width: 6px;
+      background: rgba(201,168,76,0.03);
+      border-top: 1px solid rgba(201,168,76,0.06);
+    }
+    #embers {
+      position: absolute; inset: 0; z-index: 2;
+      pointer-events: none; overflow: hidden;
+    }
+    .ember {
+      position: absolute; border-radius: 50%;
+      background: radial-gradient(circle, #FFD580 0%, var(--gold) 60%, transparent 100%);
+      animation: ember-rise linear infinite; opacity: 0;
+    }
+    @keyframes ember-rise {
+      0%   { transform: translateY(100vh) translateX(0px) scale(0.4); opacity: 0; }
+      8%   { opacity: 1; }
+      85%  { opacity: 0.6; }
+      100% { transform: translateY(-5vh) translateX(var(--ex)) scale(0.1); opacity: 0; }
+    }
+    #hero-content { position: relative; z-index: 10; padding: 0 24px; }
+    .hero-eyebrow {
+      font-family: 'Cinzel', serif; font-size: 10.5px;
+      letter-spacing: 10px; color: var(--gold);
+      text-transform: uppercase; margin-bottom: 36px;
+      opacity: 0; animation: rise 1.4s cubic-bezier(.16,1,.3,1) 0.2s forwards;
+    }
+    .hero-title {
+      font-family: 'Cinzel Decorative', serif;
+      font-size: clamp(52px, 9vw, 108px); font-weight: 900;
+      color: var(--cream); line-height: 1.08; margin-bottom: 36px;
+      text-shadow: 0 0 80px rgba(201,168,76,0.25), 0 0 160px rgba(201,168,76,0.1), 0 6px 30px rgba(0,0,0,0.9);
+      opacity: 0; animation: rise 1.4s cubic-bezier(.16,1,.3,1) 0.55s forwards;
+    }
+    .hero-ornament {
+      display: flex; align-items: center; justify-content: center;
+      gap: 16px; margin-bottom: 30px;
+      opacity: 0; animation: rise 1.2s ease 0.9s forwards;
+    }
+    .hero-ornament-line { width: 80px; height: 1px; background: linear-gradient(to right, transparent, var(--gold-dim)); }
+    .hero-ornament-line.r { background: linear-gradient(to left, transparent, var(--gold-dim)); }
+    .hero-ornament-gem { width: 9px; height: 9px; background: var(--gold-dim); transform: rotate(45deg); }
+    .hero-sub {
+      font-family: 'Crimson Text', serif; font-size: 19px;
+      font-style: italic; color: var(--cream-dim); letter-spacing: 2px;
+      opacity: 0; animation: rise 1.2s ease 1.1s forwards;
+    }
+    @keyframes rise {
+      from { opacity: 0; transform: translateY(28px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .scroll-hint {
+      position: absolute; bottom: 36px; left: 50%; transform: translateX(-50%);
+      z-index: 10; display: flex; flex-direction: column; align-items: center; gap: 10px;
+      opacity: 0; animation: rise 1s ease 2.2s forwards;
+    }
+    .scroll-hint-label { font-family: 'Cinzel', serif; font-size: 8.5px; letter-spacing: 5px; color: var(--gold-dim); text-transform: uppercase; }
+    .scroll-chevron {
+      width: 14px; height: 14px;
+      border-right: 1px solid var(--gold-dim); border-bottom: 1px solid var(--gold-dim);
+      transform: rotate(45deg); animation: bob 2.2s ease infinite;
+    }
+    @keyframes bob {
+      0%,100% { transform: rotate(45deg) translate(0,0); }
+      50%      { transform: rotate(45deg) translate(3px,3px); }
+    }
+
+    /* TAGLINE BANNER */
+    #tagline-banner {
+      background: linear-gradient(to right, var(--dark), #1A0F06 50%, var(--dark));
+      border-top: 2px solid var(--red); border-bottom: 2px solid var(--red);
+      padding: 24px 16px; text-align: center; position: relative; z-index: 20;
+    }
+    #tagline-banner p {
+      font-family: 'Cinzel Decorative', serif;
+      font-size: clamp(12px, 2vw, 17px); letter-spacing: 4px; color: var(--cream);
+      text-shadow: 0 0 30px rgba(201,168,76,0.15);
+    }
+    #tagline-banner em { color: var(--gold); font-style: normal; }
+
+    /* SHARED LAYOUT */
+    .section-wrap { max-width: 1100px; margin: 0 auto; padding: 0 48px; }
+    .section-block { padding: 96px 0; }
+    .alt-bg {
+      background: var(--dark-2); position: relative;
+    }
+    .alt-bg::before, .alt-bg::after {
+      content: ''; position: absolute; left: 0; right: 0; height: 2px;
+      background: linear-gradient(to right, transparent 0%, var(--gold-dim) 30%, var(--gold-dim) 70%, transparent 100%);
+    }
+    .alt-bg::before { top: 0; }
+    .alt-bg::after  { bottom: 0; }
+    .section-tag { font-family: 'Cinzel', serif; font-size: 9.5px; letter-spacing: 6px; color: var(--gold-dim); text-transform: uppercase; margin-bottom: 14px; }
+    .section-heading { font-family: 'Cinzel', serif; font-size: clamp(18px, 3vw, 28px); font-weight: 700; letter-spacing: 5px; text-transform: uppercase; color: var(--cream); margin-bottom: 44px; }
+    .divider { display: flex; align-items: center; gap: 18px; margin-bottom: 52px; }
+    .divider-line { flex: 1; height: 1px; background: linear-gradient(to right, var(--gold-dim), transparent); }
+    .divider-line.r { background: linear-gradient(to left, var(--gold-dim), transparent); }
+    .divider-gem {
+      position: relative; width: 10px; height: 10px;
+      border: 1px solid var(--gold); transform: rotate(45deg); flex-shrink: 0;
+    }
+    .divider-gem::after {
+      content: ''; position: absolute; width: 4px; height: 4px;
+      background: var(--gold); top: 50%; left: 50%;
+      transform: translate(-50%,-50%);
+    }
+
+    /* SCRIPT */
+    .script-box {
+      background: #0C0904; border-left: 4px solid var(--red);
+      padding: 52px 60px; position: relative; overflow: hidden;
+    }
+    .script-box::before {
+      content: '\201C'; font-family: 'Cinzel Decorative', serif;
+      font-size: 160px; color: var(--gold-dim); opacity: 0.08;
+      position: absolute; top: -30px; left: 16px;
+      line-height: 1; pointer-events: none;
+    }
+    .script-box p {
+      font-family: 'Crimson Text', serif; font-size: 20px;
+      font-style: italic; line-height: 2; color: #D8CFBA;
+      margin-bottom: 28px; position: relative; z-index: 1;
+    }
+    .script-box p:last-child { margin-bottom: 0; }
+    .script-em { color: var(--gold-light); font-style: normal; font-weight: 600; }
+
+    /* CHARACTERS */
+    .char-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; }
+    .char-card {
+      background: var(--dark-3); border-top: 3px solid var(--gold-dim);
+      padding: 40px 36px; position: relative;
+      transition: transform 0.4s cubic-bezier(.16,1,.3,1), box-shadow 0.4s;
+    }
+    .char-card:hover { transform: translateY(-8px); box-shadow: 0 24px 48px rgba(0,0,0,0.7), 0 0 0 1px var(--gold-dim); }
+    .char-role { font-family: 'Cinzel', serif; font-size: 8.5px; letter-spacing: 4px; color: var(--gold-dim); text-transform: uppercase; margin-bottom: 12px; }
+    .char-name { font-family: 'Cinzel', serif; font-size: 22px; font-weight: 700; margin-bottom: 20px; }
+    .char-card:nth-child(1) .char-name { color: #C54040; }
+    .char-card:nth-child(2) .char-name { color: var(--gold); }
+    .char-body { font-size: 17px; color: var(--cream-dim); line-height: 1.75; }
+
+    /* SYNOPSIS */
+    .synopsis-body { font-size: 21px; line-height: 1.95; color: #C8BFA8; max-width: 820px; }
+    .synopsis-body strong { color: var(--cream); font-weight: 600; }
+
+    /* VIDEO — single */
+    .video-single {
+      position: relative; padding-bottom: 56.25%;
+      background: var(--dark-3); border: 1px solid #2A2015; overflow: hidden;
+      max-width: 860px; margin: 0 auto;
+    }
+    .video-single iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: none; }
+    .video-placeholder {
+      position: absolute; inset: 0;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center; gap: 14px; cursor: pointer;
+      background-size: cover; background-position: center;
+      background-color: var(--dark-3);
+    }
+    .video-placeholder::before {
+      content: ''; position: absolute; inset: 0;
+      background: rgba(4,3,2,0.45);
+      transition: background 0.3s;
+    }
+    .video-placeholder:hover::before { background: rgba(4,3,2,0.3); }
+    .video-placeholder > * { position: relative; z-index: 1; }
+    .video-play-btn {
+      width: 72px; height: 72px;
+      border: 1.5px solid var(--gold-dim); border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--gold); font-size: 24px; padding-left: 4px;
+      transition: background 0.3s, border-color 0.3s, box-shadow 0.3s;
+    }
+    .video-placeholder:hover .video-play-btn {
+      background: rgba(201,168,76,0.1); border-color: var(--gold);
+      box-shadow: 0 0 28px rgba(201,168,76,0.18);
+    }
+    .video-label { font-family: 'Cinzel', serif; font-size: 9px; letter-spacing: 3px; color: var(--gold-dim); text-transform: uppercase; }
+    .vid-note { font-family: 'Cinzel', serif; font-size: 8.5px; letter-spacing: 2px; color: var(--cream-dim); opacity: 0.5; text-transform: uppercase; text-align: center; margin-top: 16px; }
+
+    /* PROCESS */
+    .process-grid {
+      display: grid; grid-template-columns: repeat(5, 1fr);
+      gap: 2px; margin-bottom: 52px;
+    }
+    .process-step {
+      background: var(--dark-4); padding: 32px 20px;
+      text-align: center; transition: background 0.3s; position: relative;
+    }
+    .process-step:hover { background: #2C2110; }
+    .process-step::after {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+      background: linear-gradient(to right, var(--gold-dim), transparent);
+      opacity: 0; transition: opacity 0.3s;
+    }
+    .process-step:hover::after { opacity: 1; }
+    .step-num { font-family: 'Cinzel Decorative', serif; font-size: 32px; color: var(--gold-dim); opacity: 0.3; line-height: 1; margin-bottom: 14px; }
+    .step-title { font-family: 'Cinzel', serif; font-size: 10px; letter-spacing: 2px; color: var(--gold); text-transform: uppercase; margin-bottom: 10px; }
+    .step-tool { font-family: 'Crimson Text', serif; font-style: italic; font-size: 14px; color: var(--cream-dim); }
+    .pipeline { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; margin-top: 12px; }
+    .pipe-node { font-family: 'Cinzel', serif; font-size: 10px; letter-spacing: 1.5px; color: var(--gold); text-transform: uppercase; border: 1px solid var(--gold-dim); background: rgba(201,168,76,0.05); padding: 8px 18px; }
+    .pipe-arrow { color: var(--gold-dim); font-size: 14px; }
+
+    /* FOOTER */
+    footer { background: #050402; border-top: 1px solid #1E1710; padding: 80px 40px; text-align: center; }
+    .footer-ornament { display: flex; align-items: center; justify-content: center; gap: 16px; margin-bottom: 36px; }
+    .fo-line { width: 120px; height: 1px; background: linear-gradient(to right, transparent, var(--gold-dim)); }
+    .fo-line.r { background: linear-gradient(to left, transparent, var(--gold-dim)); }
+    .fo-gem { width: 10px; height: 10px; background: var(--gold-dim); transform: rotate(45deg); }
+    .footer-tagline { font-family: 'Crimson Text', serif; font-style: italic; font-size: clamp(14px, 1.9vw, 18px); color: var(--cream-dim); letter-spacing: 2px; margin-bottom: 28px; }
+    .footer-tagline em { color: var(--gold); font-style: normal; }
+    .footer-title { font-family: 'Cinzel', serif; font-size: 18px; letter-spacing: 6px; color: var(--gold); margin-bottom: 14px; }
+    .footer-sub { font-family: 'Crimson Text', serif; font-size: 14px; letter-spacing: 3px; color: var(--cream-dim); }
+
+    /* REVEALS */
+    .reveal { opacity: 0; transform: translateY(36px); transition: opacity 0.9s cubic-bezier(.16,1,.3,1), transform 0.9s cubic-bezier(.16,1,.3,1); }
+    .reveal.in { opacity: 1; transform: translateY(0); }
+    .reveal-delay-1 { transition-delay: 0.1s; }
+    .reveal-delay-2 { transition-delay: 0.22s; }
+    .reveal-delay-3 { transition-delay: 0.34s; }
+
+    @media (max-width: 900px) { .process-grid { grid-template-columns: repeat(3, 1fr); } }
+    @media (max-width: 720px) {
+      .char-grid { grid-template-columns: 1fr; }
+      .script-box { padding: 36px 28px; }
+      .section-wrap { padding: 0 24px; }
+      .process-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 480px) { .process-grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+
+<button id="music-btn" onclick="toggleMusic()">♩ &nbsp;PLAY MUSIC</button>
+
+<!-- HERO -->
+<section id="hero">
+  <div id="hero-bg"></div>
+  <div id="hero-columns"></div>
+  <div id="embers"></div>
+  <div id="hero-content">
+    <p class="hero-eyebrow">Project Something Presents</p>
+    <h1 class="hero-title">The Empire's<br>Shadow</h1>
+    <div class="hero-ornament">
+      <div class="hero-ornament-line"></div>
+      <div class="hero-ornament-gem"></div>
+      <div class="hero-ornament-line r"></div>
+    </div>
+    <p class="hero-sub">A Final Project in Digital Storytelling</p>
+  </div>
+  <div class="scroll-hint">
+    <span class="scroll-hint-label">Scroll</span>
+    <div class="scroll-chevron"></div>
+  </div>
+</section>
+
+<!-- TAGLINE BANNER -->
+<div id="tagline-banner">
+  <p>History remembers the hero… &nbsp;<em>not the truth.</em></p>
+</div>
+
+<!-- SCRIPT -->
+<div class="alt-bg">
+  <div class="section-block">
+    <div class="section-wrap">
+      <div class="reveal">
+        <p class="section-tag">I — The Narration</p>
+        <h2 class="section-heading">The Script</h2>
+        <div class="divider">
+          <div class="divider-line"></div>
+          <div class="divider-gem"></div>
+          <div class="divider-line r"></div>
+        </div>
+        <div class="script-box">
+          <p>"An empire built on order… and belief.<br>
+          A hero… …chosen to protect it all.</p>
+          <p>But beyond the empire's story… …lay lives its chroniclers never spoke of.<br>
+          Two innocent souls… …who believed they were safe, as long as they followed the teachings of Veer Arka.</p>
+          <p>Yet their life beyond the empire's control made them a threat in the eyes of the hero they so admired.<br>
+          Veer Arkha and his men may have come to their village as protectors…<br>
+          …but to Kiran and Mira, they were nothing less than the <span class="script-em">destroyers</span> of their peaceful world.</p>
+          <p>And though history always remembers the heroes… …it too often forgets those left behind in the ruins."</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CHARACTERS -->
+<div class="section-block">
+  <div class="section-wrap">
+    <div class="reveal">
+      <p class="section-tag">II — The People</p>
+      <h2 class="section-heading">The Protagonists &amp; The Antagonist</h2>
+      <div class="divider">
+        <div class="divider-line"></div>
+        <div class="divider-gem"></div>
+        <div class="divider-line r"></div>
+      </div>
+    </div>
+    <div class="char-grid">
+      <div class="char-card reveal reveal-delay-1">
+        <p class="char-role">Protagonists</p>
+        <h3 class="char-name">Kiran &amp; Mira</h3>
+        <p class="char-body">Represent the "unseen cost" of progress. They are simple, peaceful souls living outside the Empire's walls. Their innocence is their primary trait, which contrasts sharply with the violent "order" brought by the hero.</p>
+      </div>
+      <div class="char-card reveal reveal-delay-2">
+        <p class="char-role">Antagonist</p>
+        <h3 class="char-name">Veer Arka</h3>
+        <p class="char-body">The legendary hero of the Empire. Driven by absolute belief and rigid teachings. To the Empire, he is a savior; to the village, he is an unstoppable force of destruction who cannot see the humanity in those he deems a "threat."</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SYNOPSIS -->
+<div class="alt-bg">
+  <div class="section-block">
+    <div class="section-wrap">
+      <div class="reveal">
+        <p class="section-tag">III — The Story</p>
+        <h2 class="section-heading">The Story Synopsis</h2>
+        <div class="divider">
+          <div class="divider-line"></div>
+          <div class="divider-gem"></div>
+          <div class="divider-line r"></div>
+        </div>
+        <p class="synopsis-body">Our story follows the tragic collision between imperial myth and human reality. While the Empire's history books record a glorious expansion led by the hero <strong>Veer Arka</strong>, our animation looks behind the curtain. We witness the destruction of a peaceful village that didn't fit the Empire's mold. Through the eyes of <strong>Kiran and Mira</strong>, we experience the moment their admiration for a hero turns into the terror of facing a destroyer. The project concludes by questioning who truly writes history — the ones who survived, or the ones who won?</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FINAL ANIMATION -->
+<div class="section-block">
+  <div class="section-wrap">
+    <div class="reveal">
+      <p class="section-tag">IV — The Film</p>
+      <h2 class="section-heading">Final Animation</h2>
+      <div class="divider">
+        <div class="divider-line"></div>
+        <div class="divider-gem"></div>
+        <div class="divider-line r"></div>
+      </div>
+    </div>
+    <div class="reveal reveal-delay-1">
+      <!-- ▼ Replace YOUR_VIDEO_ID with your YouTube video ID (part after ?v=) ▼ -->
+      <div class="video-single">
+        <div class="video-placeholder" style="background-image:url('https://img.youtube.com/vi/bVKnsI_AJfI/maxresdefault.jpg')" onclick="loadVideo(this,'bVKnsI_AJfI')">
+          <div class="video-play-btn">&#9654;</div>
+          <span class="video-label">Play Final Animation</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- PROCESS -->
+<div class="alt-bg">
+  <div class="section-block">
+    <div class="section-wrap">
+      <div class="reveal">
+        <p class="section-tag">V — The Making</p>
+        <h2 class="section-heading">Behind the Scenes</h2>
+        <div class="divider">
+          <div class="divider-line"></div>
+          <div class="divider-gem"></div>
+          <div class="divider-line r"></div>
+        </div>
+        <div class="process-grid">
+          <div class="process-step reveal">
+            <div class="step-num">01</div>
+            <div class="step-title">Concept</div>
+            <div class="step-tool">Script &amp; World-building</div>
+          </div>
+          <div class="process-step reveal reveal-delay-1">
+            <div class="step-num">02</div>
+            <div class="step-title">Image Gen</div>
+            <div class="step-tool">MidJourney / OpenArt</div>
+          </div>
+          <div class="process-step reveal reveal-delay-2">
+            <div class="step-num">03</div>
+            <div class="step-title">Animation</div>
+            <div class="step-tool">Kling AI / Runway Gen-4</div>
+          </div>
+          <div class="process-step reveal reveal-delay-3">
+            <div class="step-num">04</div>
+            <div class="step-title">Voiceover</div>
+            <div class="step-tool">ElevenLabs</div>
+          </div>
+          <div class="process-step reveal reveal-delay-3">
+            <div class="step-num">05</div>
+            <div class="step-title">Final Edit</div>
+            <div class="step-tool">CapCut / DaVinci Resolve</div>
+          </div>
+        </div>
+        <div class="pipeline">
+          <div class="pipe-node">MidJourney</div><span class="pipe-arrow">→</span>
+          <div class="pipe-node">Kling AI</div><span class="pipe-arrow">→</span>
+          <div class="pipe-node">ElevenLabs</div><span class="pipe-arrow">→</span>
+          <div class="pipe-node">DaVinci Resolve</div><span class="pipe-arrow">→</span>
+          <div class="pipe-node">Final Film</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-ornament">
+    <div class="fo-line"></div>
+    <div class="fo-gem"></div>
+    <div class="fo-line r"></div>
+  </div>
+  <p class="footer-tagline">History remembers the hero… &nbsp;<em>not the truth.</em></p>
+  <p class="footer-title">Project Something</p>
+  <p class="footer-sub">Digital Storytelling &nbsp;·&nbsp; 2026 Submission</p>
+</footer>
+
+<script>
+/* EMBERS */
+(function(){
+  const c=document.getElementById('embers');
+  for(let i=0;i<40;i++){
+    const e=document.createElement('div');e.className='ember';
+    const s=Math.random()*3+1.2;
+    e.style.cssText=`left:${Math.random()*100}%;width:${s}px;height:${s}px;--ex:${(Math.random()-0.5)*140}px;animation-duration:${Math.random()*9+7}s;animation-delay:${Math.random()*14}s;`;
+    c.appendChild(e);
+  }
+})();
+
+/* COLUMN SILHOUETTES */
+(function(){
+  const c=document.getElementById('hero-columns');
+  [5,12,22,35,50,65,78,88,95].forEach(p=>{
+    const col=document.createElement('div');col.className='col-silhouette';
+    const h=40+Math.random()*40;
+    col.style.cssText=`left:${p}%;height:${h}%;width:${4+Math.random()*6}px;opacity:${0.02+Math.random()*0.03};`;
+    c.appendChild(col);
+  });
+})();
+
+/* PARALLAX */
+window.addEventListener('scroll',()=>{
+  document.getElementById('hero-bg').style.transform=`scale(1.06) translateY(${window.scrollY*0.22}px)`;
+},{passive:true});
+
+/* SCROLL REVEAL */
+const revealObs=new IntersectionObserver(entries=>{
+  entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');revealObs.unobserve(e.target);}});
+},{threshold:0.08,rootMargin:'0px 0px -50px 0px'});
+document.querySelectorAll('.reveal').forEach(el=>revealObs.observe(el));
+
+/* VIDEO */
+function loadVideo(el,id){
+  if(!id||id.startsWith('YOUR')){alert('Open index.html and replace YOUR_VIDEO_ID with your YouTube video ID (the part after ?v=).');return;}
+  const f=document.createElement('iframe');
+  f.src=`https://www.youtube.com/embed/${id}?autoplay=1`;
+  f.allow='autoplay;encrypted-media';f.allowFullscreen=true;
+  el.parentElement.appendChild(f);el.remove();
+}
+
+/* ══════════════════════════════════════════
+   ANCIENT WAR CHANT — Web Audio API
+   Tribal / ritual: taiko drums, bone
+   percussion, deep drone, male chant voices,
+   call-and-response war cry pattern
+   Tempo: 76 BPM  Key: D Phrygian
+   ══════════════════════════════════════════ */
+let AC=null,playing=false;
+
+function mkReverb(ctx,s=3.5,d=1.6){
+  const l=ctx.sampleRate*s,b=ctx.createBuffer(2,l,ctx.sampleRate);
+  for(let c=0;c<2;c++){const dt=b.getChannelData(c);for(let i=0;i<l;i++)dt[i]=(Math.random()*2-1)*Math.pow(1-i/l,d);}
+  const cv=ctx.createConvolver();cv.buffer=b;return cv;
+}
+
+function mkNoise(ctx,dur){
+  const l=Math.ceil(ctx.sampleRate*dur),b=ctx.createBuffer(1,l,ctx.sampleRate),d=b.getChannelData(0);
+  for(let i=0;i<l;i++)d[i]=Math.random()*2-1;
+  const s=ctx.createBufferSource();s.buffer=b;return s;
+}
+
+function buildScore(ctx){
+  const NOW=ctx.currentTime;
+  const BPM=76,bt=60/BPM;
+
+  const master=ctx.createGain();
+  master.gain.setValueAtTime(0,NOW);
+  master.gain.linearRampToValueAtTime(0.82,NOW+3.5);
+  master.connect(ctx.destination);
+
+  const rev=mkReverb(ctx,3.5,1.6);
+  const rg=ctx.createGain();rg.gain.value=0.38;rev.connect(rg);rg.connect(master);
+
+  /* DEEP EARTH DRONE */
+  [[36.7,0.6],[55,0.32],[73.4,0.15]].forEach(([f,v])=>{
+    const o=ctx.createOscillator(),g=ctx.createGain();
+    o.type='sine';o.frequency.value=f;g.gain.value=v;
+    o.connect(g);g.connect(master);o.start(NOW);o.stop(NOW+bt*128);
+  });
+  const lfo=ctx.createOscillator(),lg=ctx.createGain();
+  lfo.frequency.value=0.25;lg.gain.value=0.07;
+  lfo.connect(lg);lg.connect(master.gain);lfo.start(NOW);lfo.stop(NOW+bt*128);
+
+  /* TAIKO */
+  function taiko(t,vel=1.0){
+    const o=ctx.createOscillator(),g=ctx.createGain();
+    o.type='sine';
+    o.frequency.setValueAtTime(200,t);o.frequency.exponentialRampToValueAtTime(52,t+0.18);
+    g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(vel*1.1,t+0.005);g.gain.exponentialRampToValueAtTime(0.0001,t+1.4);
+    o.connect(g);g.connect(master);g.connect(rev);o.start(t);o.stop(t+1.5);
+    const s=ctx.createOscillator(),sg=ctx.createGain();
+    s.type='sine';s.frequency.setValueAtTime(80,t);s.frequency.exponentialRampToValueAtTime(28,t+0.25);
+    sg.gain.setValueAtTime(vel*0.55,t);sg.gain.exponentialRampToValueAtTime(0.0001,t+0.6);
+    s.connect(sg);sg.connect(master);s.start(t);s.stop(t+0.7);
+    const n=mkNoise(ctx,0.04),ng=ctx.createGain();
+    const hp=ctx.createBiquadFilter();hp.type='bandpass';hp.frequency.value=300;hp.Q.value=0.5;
+    ng.gain.setValueAtTime(vel*0.3,t);ng.gain.exponentialRampToValueAtTime(0.0001,t+0.04);
+    n.connect(hp);hp.connect(ng);ng.connect(master);n.start(t);n.stop(t+0.05);
+  }
+
+  /* BONE / WOOD PERCUSSION */
+  function bone(t,vel=0.5){
+    const n=mkNoise(ctx,0.035),g=ctx.createGain();
+    const bp=ctx.createBiquadFilter();bp.type='bandpass';bp.frequency.value=1800;bp.Q.value=4;
+    const hp=ctx.createBiquadFilter();hp.type='highpass';hp.frequency.value=900;
+    g.gain.setValueAtTime(vel*0.45,t);g.gain.exponentialRampToValueAtTime(0.0001,t+0.06);
+    n.connect(bp);bp.connect(hp);hp.connect(g);g.connect(master);n.start(t);n.stop(t+0.07);
+    const o=ctx.createOscillator(),og=ctx.createGain();
+    o.type='triangle';o.frequency.value=420;
+    og.gain.setValueAtTime(vel*0.2,t);og.gain.exponentialRampToValueAtTime(0.0001,t+0.05);
+    o.connect(og);og.connect(master);o.start(t);o.stop(t+0.06);
+  }
+
+  /* FRAME DRUM */
+  function frame(t,vel=0.65){
+    const o=ctx.createOscillator(),g=ctx.createGain();
+    o.type='sine';o.frequency.setValueAtTime(130,t);o.frequency.exponentialRampToValueAtTime(62,t+0.12);
+    g.gain.setValueAtTime(vel*0.7,t);g.gain.exponentialRampToValueAtTime(0.0001,t+0.55);
+    o.connect(g);g.connect(master);o.start(t);o.stop(t+0.6);
+    const n=mkNoise(ctx,0.06),ng=ctx.createGain();
+    const bp=ctx.createBiquadFilter();bp.type='bandpass';bp.frequency.value=500;bp.Q.value=1;
+    ng.gain.setValueAtTime(vel*0.22,t);ng.gain.exponentialRampToValueAtTime(0.0001,t+0.07);
+    n.connect(bp);bp.connect(ng);ng.connect(master);n.start(t);n.stop(t+0.08);
+  }
+
+  /* CHANT VOICE */
+  function chant(t,freq,dur,vel=0.55){
+    const o=ctx.createOscillator(),g=ctx.createGain();
+    o.type='sawtooth';o.frequency.value=freq;
+    const f1=ctx.createBiquadFilter();f1.type='bandpass';f1.frequency.value=820;f1.Q.value=3.5;
+    const f2=ctx.createBiquadFilter();f2.type='bandpass';f2.frequency.value=1200;f2.Q.value=5;
+    const mix=ctx.createGain();mix.gain.value=1;
+    g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(vel,t+0.04);
+    g.gain.setValueAtTime(vel,t+dur*0.6);g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
+    o.connect(g);g.connect(f1);g.connect(f2);f1.connect(mix);f2.connect(mix);
+    mix.connect(rev);mix.connect(master);o.start(t);o.stop(t+dur+0.05);
+    const o2=ctx.createOscillator(),g2=ctx.createGain();
+    o2.type='sawtooth';o2.frequency.value=freq*0.5;
+    const lp=ctx.createBiquadFilter();lp.type='lowpass';lp.frequency.value=400;
+    g2.gain.setValueAtTime(0,t);g2.gain.linearRampToValueAtTime(vel*0.35,t+0.05);g2.gain.exponentialRampToValueAtTime(0.0001,t+dur*0.9);
+    o2.connect(lp);lp.connect(g2);g2.connect(master);o2.start(t);o2.stop(t+dur+0.05);
+  }
+
+  function cry(t,freq,vel=0.7){ chant(t,freq,0.18,vel); taiko(t+0.02,vel*0.6); }
+
+  /* RHYTHM PATTERN */
+  const S=bt/2;
+  for(let bar=0;bar<32;bar++){
+    const T=NOW+bar*bt*4;
+    taiko(T,1.0); taiko(T+S*2,0.75); taiko(T+S*4,0.82); taiko(T+S*6,0.65);
+    if(bar%2===1) taiko(T+S*3,0.45);
+    bone(T+S*1,0.55); bone(T+S*3,0.5); bone(T+S*5,0.55); bone(T+S*7,0.5);
+    if(bar%4===3){ bone(T+S*0.5,0.3); bone(T+S*2.5,0.3); bone(T+S*4.5,0.3); bone(T+S*6.5,0.3); }
+    frame(T+S*3,0.6); frame(T+S*7,0.65);
+    if(bar%2===0){ chant(T,73.4,0.55,0.6); chant(T+0.06,77.8,0.5,0.45); }
+    if(bar%2===1){ chant(T+S*4,110,0.45,0.55); chant(T+S*4+0.05,87.3,0.4,0.4); }
+    if(bar%8===7){ cry(T+S*6,146.8,0.85); taiko(T+S*6,1.0); taiko(T+S*7,0.9); }
+    if(bar%4===3) taiko(T+S*5.5,0.6);
+  }
+  for(let i=0;i<8;i++) taiko(NOW+bt*4*28+i*(bt*4*4/8)*0.8,0.7+i*0.04);
+
+  return master;
+}
+
+function toggleMusic(){
+  const btn=document.getElementById('music-btn');
+  if(!playing){
+    if(!AC){ AC=new(window.AudioContext||window.webkitAudioContext)(); buildScore(AC); }
+    else { AC.resume(); }
+    playing=true;
+    btn.innerHTML='♩ &nbsp;PAUSE MUSIC'; btn.classList.add('on');
+  } else {
+    AC.suspend(); playing=false;
+    btn.innerHTML='♩ &nbsp;PLAY MUSIC'; btn.classList.remove('on');
+  }
+}
+</script>
+</body>
+</html>
